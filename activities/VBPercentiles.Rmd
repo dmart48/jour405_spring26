@@ -37,7 +37,7 @@ team_aces |> mutate(percentile = ntile(total_aces, 100))
 
 Write a couple of sentences that puts Maryland into context with the other teams in the dataset. You can do some Internet research to help with this.
 
-
+Maryland ranks 17th in team aces with 223, which puts them in the 95th percentile for team aces. However, Maryland was not ranked as highly in general rankings, not even cracking the top 25 for 2024. Other teams like Creighton and Dayton who are listed around Maryland did make the top 25, but Maryland did not. 
 
 When you are done, save your work, switch to GitHub Desktop, then add, commit and push your changes to GitHub and submit the URL of the notebook in ELMS.
 
