@@ -1,6 +1,6 @@
 ---
 title: "Baltimore County 911 Overdose Calls Analysis"
-author: "YOUR NAME HERE"
+author: "Danny Martella"
 ---
 
 ```{r setup, include=FALSE}
@@ -65,8 +65,7 @@ daily_calls <- calls_data |>
   count(date, name = "call_count")
 
 # Display the first few days
-head(daily_calls, 10) |>
-  kable()
+head(daily_calls, 10) 
 
 # Basic summary statistics for daily call volume
 summary(daily_calls$call_count)
@@ -74,7 +73,7 @@ summary(daily_calls$call_count)
 
 Let's visualize the time series of daily calls. What patterns do you see? If you had to draw horizontal lines that would highlight unusual days, where would those lines be?
 
-ANSWER HERE
+
 
 ```{r daily-calls-plot}
 # Plot daily call volume
@@ -90,7 +89,7 @@ ggplot(daily_calls, aes(x = date, y = call_count)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-
+# The date in early October is a clear outlier with around 23. After that, New Years Day has another spike that is much higher than the dates around it. However, disregarding that, there seems to be a declining trend in number of calls from October 2022 to January 2023. 
 
 
 ## Task 4: Calculating Z-Scores for Daily Call Volume
@@ -207,7 +206,7 @@ ggplot(dow_summary, aes(x = day_of_week, y = avg_calls)) +
 
 We can also calculate z-scores that account for the day of the week pattern. How would you describe the day with the highest z-score without using the term "z-score"?
 
-ANSWER HERE
+# Tuesday, October 4 had a number of calls that was way above the average for a Tuesday. October 4, would fall above the 95th percentile for all Tuesdays recoreded in the data. 
 
 ```{r day-of-week-z-scores}
 # Calculate day-of-week adjusted z-scores
@@ -298,5 +297,5 @@ top_outliers |> kable(digits = 2)
 
 Based on our z-score analysis, what are some potential angles for reporting? What would your next steps be and what would you tell an editor about your findings?
 
-ANSWER HERE
+# Based on the z-score data, we can see that in July, there was an uptick in calls in an eight day span in July. This likely indicates an anomoly that occured in July. In this case it was a bad batch of drugs that caused the increase in calls. I would talk to law enforcement and see if they tell me anything they know. Then I might go to people familiar with drugs in the area, (not necessarily drug addicts or dealers), maybe advocates who got clean, the DEA, or other experts. 
 
