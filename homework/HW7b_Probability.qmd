@@ -1,0 +1,486 @@
+---
+title: "HW7b - Probability and the Normal Distribution"
+Name: "Danny Martella"
+---
+
+In this assignment, you'll build on your z-score skills to answer probability questions using the normal distribution. You'll return to the White House salaries data and use it to answer the kinds of "what are the chances?" questions that come up in journalism all the time. This sets the stage for sampling, which we'll cover next.
+
+### Task 1: Load the tidyverse and the data (1 point)
+
+Load the tidyverse and the White House salaries data from https://raw.githubusercontent.com/dwillis/jour405/refs/heads/main/data/white_house_salaries_2025.csv into a dataframe called `wh_salaries`
+
+```{r}
+library(tidyverse)
+wh_salaries <- read_csv("https://raw.githubusercontent.com/dwillis/jour405/refs/heads/main/data/white_house_salaries_2025.csv")
+```
+
+### Task 2: Filter and summarize (2 points)
+
+You may remember from HW3 that some White House staffers have a salary of $0. Let's filter those out and focus on paid employees, saving the result to a new dataframe called `wh_paid`. You need to calculate the mean, median and standard deviation of the salary column using `wh_paid`:
+
+```{r}
+wh_paid <- wh_salaries |>
+  filter(SALARY > 0)
+
+
+wh_paid <- clean_names(wh_paid)
+
+wh_paid |>
+  summarise(
+    mean_salarie = mean(salary) , 
+    sd_salarie = sd(salary)
+  )
+
+```
+
+Now create a histogram of the paid salaries with a vertical line for the mean and two more for ±1 standard deviation, similar to what you did in HW6 with Spotify data.
+
+```{r}
+car_thefts |> 
+  ggplot() + 
+  geom_histogram(aes(x = salary), binwidth = 10000) 
+
+```
+**Describe the shape of the distribution. Is it roughly normal? Skewed? Where do most salaries cluster?**
+
+The data for wh_paid is roughly skewed right with most salaries clustering between around 70000 to 125000. The most common value by far is about 70000.
+
+### Task 3: The Empirical Rule (3 points)
+
+The empirical rule (also called the 68-95-99.7 rule) says that for a normal distribution:
+- About 68% of data falls within 1 standard deviation of the mean
+- About 95% falls within 2 standard deviations
+- About 99.7% falls within 3 standard deviations
+
+Let's test this. We'll calculate the salary ranges for 1, 2, and 3 standard deviations from the mean, then count how many employees actually fall in each range.
+
+```{r}
+mean_sal <- mean(wh_paid$salary)
+sd_sal <- sd(wh_paid$salary)
+total_n <- nrow(wh_paid)
+
+empirical <- tibble(
+  range = c("Within 1 SD", "Within 2 SD", "Within 3 SD"),
+  lower = c(mean_sal - sd_sal, mean_sal - 2 * sd_sal, mean_sal - 3 * sd_sal),
+  upper = c(mean_sal + sd_sal, mean_sal + 2 * sd_sal, mean_sal + 3 * sd_sal),
+  expected_pct = c(68, 95, 99.7),
+  actual_count = c(
+    sum(wh_paid$salary >= (mean_sal - sd_sal) & wh_paid$salary <= (mean_sal + sd_sal)),
+    sum(wh_paid$salary >= (mean_sal - 2 * sd_sal) & wh_paid$salary <= (mean_sal + 2 * sd_sal)),
+    sum(wh_paid$salary >= (mean_sal - 3 * sd_sal) & wh_paid$salary <= (mean_sal + 3 * sd_sal))
+  ),
+  actual_pct = round((actual_count / total_n) * 100, 1)
+)
+
+empirical
+```
+
+**How closely does the data follow the empirical rule? What does any deviation tell you about the distribution?**
+
+The data follows the empirical rule pretty closely. The actual percent within 1 SD is only 2.1 percent points off from the expected, for 2 SD it is 3.8 percent points. For SD 3, it is only .3 percent points off at 100 percent. The difference between the actual and expected percents indicate that the data falls closer to the mean than expected. 
+
+### Task 4: From z-scores to probability with pnorm() (4 points)
+
+Remember the car thefts z-score activity from class? Well, I want to return to that briefly, introduce a new tool called pnorm() and then apply it here. So open that CarTheftZScores notebook and, at the bottom, copy and paste in the contents here: https://gist.githubusercontent.com/dwillis/25102889f576b1707576b85e0be0c353/raw/1ca2be9636497cb5293ff7b1f4e6ed8e27a9e049/car_theft_pnorm.rmd
+
+Re-run all of the blocks in CarTheftZScores notebook, including the code you just pasted in. What's happening there is you are using a function called `pnorm()` to find the probability of a value being less than or equal to a certain z-score. The basic formula to find that probability is:
+
+```
+1 - pnorm(z_score)
+```
+
+Where `z_score` is one row's z-score. Now apply the same approach to salaries.
+
+Your editor asks: **"What's the probability that a randomly selected White House employee makes more than $150,000?"**
+
+To answer this:
+1. Calculate the z-score for $150,000
+2. Use `pnorm()` to find the probability. `pnorm()` gives you the area under the normal curve to the LEFT of a z-score — that is, the probability of being BELOW that value.
+3. Subtract from 1 to get the probability of being ABOVE $150,000
+4. Check your answer against the actual data
+
+```{r}
+
+salary <- 150000
+z_score <- (salary - mean_sal) / sd_sal
+
+prob_less <- pnorm(z_score)
+prob_more <- 1 - prob_less
+prob_more
+
+# Check against actual data
+actual_prob <- sum(wh_paid$salary > 150000) / total_n
+actual_prob
+```
+
+**Write a sentence describing this probability in plain English. How does the normal approximation (prob_less) compare to the actual percentage?**
+
+ This number means 18% of the people in the White House make above 150,000, compared to an expected normal distribution where 17% of employees would make above 150,000.
+
+### Task 5: Probability between two values (3 points)
+
+Now your editor asks: **"What percentage of White House employees make between $80,000 and $120,000?"**
+
+You'll need to calculate z-scores for those two figures, use `pnorm()` for each, and subtract to find the probability between them. Update the REPLACE_ME figures with the appropriate numbers.
+
+```{r}
+
+z_lower <- (80000 - mean_sal) / sd_sal
+z_upper <- (120000 - mean_sal) / sd_sal
+
+prob_between <- pnorm(z_upper) - pnorm(z_lower)
+prob_between
+
+# Verify with actual data
+actual_between <- sum(wh_paid$salary >= 80000 & wh_paid$salary <= 120000) / total_n
+actual_between
+
+```
+
+**Interpret this result. What does this "middle range" tell us about the White House salary structure?**
+
+This means that almost 31% of the white house workers make between 80,000 and 120,000. 
+
+### Task 6: Expected vs. observed (3 points)
+
+Let's compare what the normal distribution *predicts* to what we actually *see*. This idea — comparing expected to observed — is one you'll use again later in the course.
+
+Create these salary bins and calculate the expected count (from the normal distribution) and the observed count (from the actual data) for each:
+
+```{r}
+bins <- tibble(
+  category = c("Below $60k", "$60k-$90k", "$90k-$120k", "$120k-$150k", "Above $150k"),
+  lower = c(-Inf, 60000, 90000, 120000, 150000),
+  upper = c(60000, 90000, 120000, 150000, Inf)
+) |>
+  mutate(
+    expected_pct = pnorm(upper, mean = mean_sal, sd = sd_sal) - pnorm(lower, mean = mean_sal, sd = sd_sal),
+    expected_count = round(expected_pct * total_n, 1),
+    observed_count = c(
+      sum(wh_paid$salary < 60000),
+      sum(wh_paid$salary >= 60000 & wh_paid$salary < 90000),
+      sum(wh_paid$salary >= 90000 & wh_paid$salary < 120000),
+      sum(wh_paid$salary >= 120000 & wh_paid$salary < 150000),
+      sum(wh_paid$salary >= 150000)
+    ),
+    difference = observed_count - expected_count
+  )
+
+bins |> select(category, expected_count, observed_count, difference)
+```
+
+**Where does reality differ most from what the normal distribution predicts? What might explain those differences?**
+
+The normal distribution predicts that the largest bin would be 90k-120k when in reality the largest bin by almost double is 60k-90k. This means that white house employees are generally making less than we would expect based on the normal distribution model. I think this is explained by the fact that salaries in general are not normally distributed. Usually, in order to make more money, you muse be promoted or been at the company a long time. Most oganizations have a pyramid format meaning the higher up you go, the less people at each level. So there are more people with relatively lower salaries. 
+
+### Task 7: Story pitch (4 points)
+
+Based on your probability analysis, write a headline and lede for a story about White House salaries. Your lede should incorporate at least one probability or percentage you calculated.
+
+Then write 2-3 sentences describing how you would use probability thinking to advance this story — what could you compare these probabilities to, and what additional analysis would help?
+
+```{r}
+prob_over_us <- sum(wh_paid$salary > 63000) / total_n
+prob_over_av
+
+prob_over_dc <- sum(wh_paid$salary > 134000) / total_n
+prob_over_dc
+
+prob_over_dc_med <- sum(wh_paid$salary > 102000) / total_n
+prob_over_dc_med
+
+prob_over_wh <- sum(wh_paid$salary > 106000) / total_n
+prob_over_wh
+```
+
+
+CONSIDERING WORKING IN THE WHITE HOUSE? HERES HOW MUCH YOU COULD MAKE
+
+You may think that people who work in one of the most famous places on Earth get paid pretty handsomely, but in reality, they are don't. Not to say they don't make good money, but 77% of White House employees make less than the average full time salary in D.C., and almost half make less than the median full time salary in D.C.
+
+I could use probability to look at other branches and agencies of the government to see how salaries in different parts of the federal government differ. I would be able to see which area of government generally make more or less money. It would also be useful to see how much government employees make. 
+
+### Task 8: Save Your Work and Put it on GitHub
+
+Save this notebook, then commit it to your local repository. Push the changes to your GitHub repository and submit the URL for this file in ELMS.
+
+
+
+
+
+
+
+---
+title: "Car Theft Z-Score Analysis"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Analyzing Car Theft Data with Z-Scores
+
+## Introduction
+
+In this notebook, you'll analyze monthly car theft data from 2017 to 2025 using z-scores. Z-scores help us identify statistically unusual values in our dataset, which can point to important patterns or outliers that deserve journalistic attention.
+
+A z-score tells us how many standard deviations a data point is from the mean. Generally:
+- Z-scores between -2 and 2 represent typical values (about 95% of the data)
+- Z-scores beyond ±2 indicate unusual values that might warrant investigation
+- Z-scores beyond ±3 are very unusual (only about 0.3% of normally distributed data)
+
+## Setup
+
+Let's start by loading the necessary packages:
+
+```{r load-packages}
+library(tidyverse)  # For data manipulation and visualization
+library(knitr)      # For nice tables
+library(lubridate)  # For working with dates
+```
+
+## Loading the Data
+
+We'll load the car theft data from our CSV file:
+
+```{r load-data}
+# Load car theft data
+car_thefts <- read_csv("https://raw.githubusercontent.com/dwillis/jour405/refs/heads/main/data/car_thefts_month17_25.csv")
+
+# Display the first few rows
+head(car_thefts)
+```
+
+## Data Exploration
+
+Let's first understand our dataset structure:
+
+```{r data-exploration}
+# Get a summary of the data
+summary(car_thefts)
+
+# Check dimensions
+dim(car_thefts)
+
+# Check for missing values
+sum(is.na(car_thefts))
+```
+
+Now let's create a time series visualization of car thefts:
+
+```{r time-series-plot}
+# Convert month to proper date format (assuming format like "Jan 2017")
+car_thefts <- car_thefts %>%
+  mutate(date = parse_date_time(month, "my"))
+
+# Plot time series
+ggplot(car_thefts, aes(x = month, y = total)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Monthly Car Thefts (2017-2025)",
+       x = "Month",
+       y = "Number of Car Thefts",
+       caption = "Source: Car Theft Dataset")
+```
+
+## Calculating Z-Scores
+
+Now, let's calculate z-scores for our car theft totals:
+
+```{r calculate-z-scores}
+# Calculate z-scores for total car thefts
+car_thefts <- car_thefts %>%
+  mutate(
+    mean_thefts = mean(total),
+    sd_thefts = sd(total),
+    z_score = (total - mean_thefts) / sd_thefts
+  )
+
+# Display the data with z-scores
+car_thefts %>%
+  select(month, total, z_score) %>%
+  head(10) %>%
+  kable(digits = 2)
+```
+
+## Identifying Unusual Months
+
+Let's identify months with unusually high or low car theft numbers (|z-score| > 2):
+
+```{r unusual-months}
+# Find months with unusual car theft numbers
+unusual_months <- car_thefts %>%
+  filter(abs(z_score) > 2) %>%
+  arrange(desc(abs(z_score)))
+
+# Display unusual months
+unusual_months %>%
+  select(month, total, z_score) %>%
+  kable(digits = 2)
+```
+
+Let's visualize these unusual months:
+
+```{r plot-unusual-months}
+# Highlight unusual months in the time series
+ggplot(car_thefts, aes(x = month, y = total, color = abs(z_score) > 2)) +
+  geom_line(color = "gray") +
+  geom_point(size = 3) +
+  scale_color_manual(values = c("black", "red"), 
+                     name = "Unusual Value",
+                     labels = c("Normal", "Unusual")) +
+  theme_minimal() +
+  labs(title = "Monthly Car Thefts with Unusual Months Highlighted",
+       subtitle = "Unusual months have z-scores with absolute values > 2",
+       x = "Month",
+       y = "Number of Car Thefts",
+       caption = "Source: Car Theft Dataset")
+```
+
+## Adjusting for Population
+
+Raw numbers might be misleading if the population changes over time. Let's calculate car thefts per 100,000.
+
+```{r per-capita-rates}
+# Calculate thefts per 100,000 population
+car_thefts <- car_thefts %>%
+  mutate(
+    thefts_per_100k = (total / population) * 100000,
+    mean_per_100k = mean(thefts_per_100k),
+    sd_per_100k = sd(thefts_per_100k),
+    z_score_per_100k = (thefts_per_100k - mean_per_100k) / sd_per_100k
+  )
+
+# Display the first few rows with per capita rates
+car_thefts %>%
+  select(month, total, population, thefts_per_100k, z_score_per_100k) %>%
+  head(10) %>%
+  kable(digits = 2)
+```
+
+Let's find months with unusual per capita theft rates:
+
+```{r unusual-per-capita}
+# Find months with unusual per capita theft rates
+unusual_per_capita <- car_thefts %>%
+  filter(abs(z_score_per_100k) > 2) %>%
+  arrange(desc(abs(z_score_per_100k)))
+
+# Display unusual per capita months
+unusual_per_capita %>%
+  select(month, thefts_per_100k, z_score_per_100k) %>%
+  kable(digits = 2)
+```
+
+Visualize the per capita rates:
+
+```{r plot-per-capita}
+# Plot per capita theft rates
+ggplot(car_thefts, aes(x = month, y = thefts_per_100k, color = abs(z_score_per_100k) > 2)) +
+  geom_line(color = "gray") +
+  geom_point(size = 3) +
+  scale_color_manual(values = c("black", "red"), 
+                     name = "Unusual Value",
+                     labels = c("Normal", "Unusual")) +
+  theme_minimal() +
+  labs(title = "Car Thefts per 100,000 Population",
+       subtitle = "Unusual months have z-scores with absolute values > 2",
+       x = "Month",
+       y = "Thefts per 100,000 Population",
+       caption = "Source: Car Theft Dataset")
+```
+
+## Comparing Raw Numbers vs. Per Capita Rates
+
+It's interesting to compare which months stand out as unusual based on raw numbers versus per capita rates:
+
+```{r compare-unusual}
+# Combine unusual months from both metrics
+unusual_combined <- car_thefts %>%
+  filter(abs(z_score) > 2 | abs(z_score_per_100k) > 2) %>%
+  select(month, total, z_score, thefts_per_100k, z_score_per_100k) %>%
+  arrange(month)
+
+# Display combined unusual months
+unusual_combined %>%
+  kable(digits = 2)
+```
+
+## Seasonal Patterns
+
+Let's also check if there are seasonal patterns in car thefts:
+
+```{r seasonal-analysis}
+# Extract month from date
+car_thefts <- car_thefts %>%
+  mutate(month_of_year = month(month, label = TRUE))
+
+# Calculate average thefts by month
+monthly_pattern <- car_thefts %>%
+  group_by(month_of_year) %>%
+  summarize(
+    avg_thefts = mean(total),
+    avg_per_100k = mean(thefts_per_100k)
+  )
+
+# Plot seasonal pattern
+ggplot(monthly_pattern, aes(x = month_of_year, y = avg_thefts, group = 1)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Average Car Thefts by Month",
+       x = "Month",
+       y = "Average Number of Thefts",
+       caption = "Source: Car Theft Dataset")
+```
+
+## Adjusting for Seasonality
+
+We can also calculate z-scores that account for seasonal patterns:
+
+```{r seasonal-z-scores}
+# Calculate seasonal z-scores
+car_thefts <- car_thefts %>%
+  group_by(month_of_year) %>%
+  mutate(
+    seasonal_mean = mean(total),
+    seasonal_sd = sd(total),
+    seasonal_z_score = (total - seasonal_mean) / seasonal_sd
+  ) %>%
+  ungroup()
+
+# Find months with unusual seasonal z-scores
+unusual_seasonal <- car_thefts %>%
+  filter(abs(seasonal_z_score) > 2) %>%
+  arrange(desc(abs(seasonal_z_score)))
+
+# Display months that are unusual for their season
+unusual_seasonal %>%
+  select(month, total, seasonal_mean, seasonal_z_score) %>%
+  kable(digits = 2)
+```
+
+## Journalistic Insights
+
+Based on our z-score analysis, here are some potential journalistic angles:
+
+1. **Extreme Outliers**: Months with z-scores beyond ±3 represent extremely unusual car theft activity. We could investigate what specific events or factors contributed to these extreme values.
+
+2. **Seasonal Anomalies**: Months that are statistically unusual for their season might indicate changes in theft patterns that break from traditional seasonal trends.
+
+3. **Trend Changes**: Clusters of months with high z-scores might indicate shifts in car theft trends that could be linked to economic conditions, law enforcement policies, or other social factors.
+
+4. **Population Impact**: Differences between raw number z-scores and per capita z-scores might reveal how population changes affect crime statistics reporting.
+
+## Conclusion
+
+Z-scores provide a powerful statistical tool for identifying unusual patterns in time series data like monthly car thefts. By calculating these scores, we can quickly identify months that deviate significantly from the norm, which can lead to journalistic insights and story ideas.
+
+When reporting on these findings, remember to:
+
+1. **Provide Context**: Explain what a z-score means in terms readers can understand
+2. **Investigate Causes**: Follow up on unusual values to understand the underlying reasons
+3. **Consider Multiple Metrics**: Look at both raw numbers and population-adjusted figures
+4. **Account for Seasonality**: Consider whether values are unusual compared to the same time of year
+
