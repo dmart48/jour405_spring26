@@ -5,27 +5,106 @@ title: "HW8_MandMs"
 In this assignment, you'll be picking up where you left off with the M&Ms activity. You'll load the data and perform some basic statistical analysis. Follow the steps below to complete the assignment.
 
 ### Task 1: Load the tidyverse
+```{r}
+library(tidyverse)
+```
 
 
 ### Task 2: Load the M&Ms dataset from https://raw.githubusercontent.com/dwillis/jour405/refs/heads/main/data/mandms.csv
+```{r}
+mandms <- read_csv("https://raw.githubusercontent.com/dwillis/jour405/refs/heads/main/data/mandms.csv") |>
+
+mutate(
+  pct_black = (black / total) * 100
+)
+```
 
 
 ### Task 3: Sample 5 rows of data from the dataset
+```{r}
+set.seed(1)
+
+sample_5 <- mandms |> sample_n(5)
+```
 
 
 ### Task 4: Calculate the mean age and standard deviation of the sample, using either the blue or white number of M&Ms
+```{r}
+sample_5_stats <- sample_5 |>
+  summarise(
+    mean_black = mean(pct_black) ,
+sd_black = sd(pct_black)
+    
+  )
+sample_5_stats
+```
 
 
 ### Task 5: Calculate the mean age and standard deviation of the population, using the same measure as in Task 4
+```{r}
+total_black_stats <- mandms |>
+  summarise(
+    totalmeanblack = mean(pct_black) , 
+    totalsdblack = sd(pct_black)
+  )
+total_black_stats
+```
 
 
 ### Task 6: Compare the sample and population statistics
 
 Compare the two sets of means and standard deviations. Are they similar?
 
+The standard deviation are similar, the sample had a sd of 5.3 and the total sd was 4.2. THe means are much different however. The sample mean was 47 whereas the total mean was 50. 
+
 ### Task 7: Describe the results
 
+```{r}
+set.seed(3)
+
+sample_5 <- mandms |> sample_n(5)
+
+sample_5_stats <- sample_5 |>
+  summarise(
+    mean_black = mean(pct_black) ,
+sd_black = sd(pct_black)
+    
+  )
+sample_5_stats
+```
+
+```{r}
+set.seed(2)
+
+sample_20 <- mandms |> sample_n(20)
+
+sample_20_stats <- sample_20 |>
+  summarise(
+    mean_black = mean(pct_black) ,
+sd_black = sd(pct_black)
+    
+  )
+sample_20_stats
+```
+
+```{r}
+set.seed(4)
+
+sample_20 <- mandms |> sample_n(20)
+
+sample_20_stats <- sample_20 |>
+  summarise(
+    mean_black = mean(pct_black) ,
+sd_black = sd(pct_black)
+    
+  )
+sample_20_stats
+```
+
 Write a few sentences about what you found in the data. What does this tell you about the M&Ms dataset and about the act of random sampling?
+
+#Based on this data, it seems that the larger the sample, the the more accurate the sample mean to the total mean. The standard deviation follows a similar pattern. As the sample size got larger, the standard deviation got relatively closer to the total standard deviation.  Also, we can see that the more rows we have, the closer the mean gets to 50%. We have to put it in percentages because each observation varies in size. If they all had an equal amount of M&Ms, then we could use the numbers straight up. 
+
 
 
 When finished, save your work, switch to GitHub Desktop, then add, commit and push your changes to GitHub and submit the URL of the notebook in ELMS.
