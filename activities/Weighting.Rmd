@@ -93,10 +93,13 @@ ggplot(nonvoters_data, aes(x = weight)) +
 **Questions:**
 
 1. What is the range of weights in this dataset?
+#The range of weights goes from around .25 to just over 3. 
 
 2. What does it mean when a respondent has a weight of 0.23? What about 3.04?
+#A weight of .23 means that there are a lot more of this type of respondent so their response is weighted less. A higher weight means there is a lot less of that type of respondent so their response counts for more than just them. 
 
 3. Why might some respondents be weighted more heavily than others?
+# There may be a lot of a certain type of person who responded to the survey and much less of another kind of person. This may not represent the true population proportion so they are weighted to correct the representation. 
 
 # Exercise 1: Voter Categories and Weighting
 
@@ -232,7 +235,10 @@ kable(comparison, digits = 1, caption = "Difference Between Weighted and Unweigh
 **Answer These Questions:**
 
 1. Which voter category shows the biggest difference between weighted and unweighted results?
+#Never/Rarely 
 
 2. How might these differences affect reporting on likely voter turnout?
+#The "rarely/never" people can change an election if they come out or not so knowing the most accurate figure can help determine who will win. 
 
 3. Why do you think these differences exist? What does this tell us about who might be over or under-represented in the sample?
+# The "rarely/never" people are harder to reach, less likely to vote, and thus less likely to fill out surveys. 
